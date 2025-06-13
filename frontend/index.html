@@ -210,7 +210,7 @@
       slidesContainer.innerHTML = '';
 
       try {
-        const response = await fetch('https://startup-pitch-generator.onrender.com/generate', {
+        const response = await fetch('https://startup-pitch-generator.onrender.com/generate_pitch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idea, tone, industry, audience })
