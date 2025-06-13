@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Startup Pitch Generator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(145deg, #0e0e0e, #1b1b1b);
+      color: #e0e0e0;
+      font-size: 18px;
+    }
+
+    header {
+      padding: 2rem;
+      background: linear-gradient(to right, #1f1f1f, #2a2a2a);
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    input, select, button, textarea {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 0.75rem;
+      background: #1f1f1f;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.05);
+      transition: all 0.2s ease;
+    }
+
+    button {
+      background: linear-gradient(to right, #4f46e5, #6366f1);
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(to right, #4338ca, #6366f1);
+    }
+
+    label {
+      margin-top: 1rem;
+      display: block;
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+
+    .slide-card {
+      background: #1a1a1a;
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      transform-style: preserve-3d;
+      transform: perspective(600px) rotateX(0deg);
+      transition: transform 0.3s;
+    }
+
+    .slide-card:hover {
+      transform: perspective(600px) rotateX(2deg);
+    }
+
+    .slide-card img {
+      width: 100%;
+      border-radius: 14px;
+      margin: 1rem 0;
+      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.05);
+    }
+
+    h1, h2, h3 {
+      color: #ffffff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-top: 3rem;
+    }
+
+    #pitchOutput {
+      white-space: pre-wrap;
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: #181818;
+      border: 1px solid #333;
+      border-radius: 16px;
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.05);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 600px) {
+      .button-row {
+        flex-direction: column;
+      }
+      main {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚀 Startup Pitch Generator</h1>
+  </header>
+
+  <main>
+    <label for="idea">Your Startup Idea</label>
+    <textarea id="idea" rows="3" placeholder="Describe your startup idea..."></textarea>
+
+    <label for="tone">Tone</label>
+    <select id="tone">
+      <option value="professional">Professional</option>
+      <option value="inspiring">Inspiring</option>
+      <option value="bold">Bold</option>
+      <option value="fun">Fun</option>
+    </select>
+
+    <label for="industry">Target Industry</label>
+    <select id="industry">
+      <option value="tech">Technology</option>
+      <option value="health">Healthcare</option>
+      <option value="finance">Finance</option>
+      <option value="education">Education</option>
+      <option value="entertainment">Entertainment</option>
+    </select>
+
+    <label for="audience">Audience Type</label>
+    <select id="audience">
+      <option value="investor">Investors</option>
+      <option value="fund">VC Funds</option>
+      <option value="genz">Gen Z</option>
+      <option value="general">General Public</option>
+    </select>
+
+    <div class="button-row">
+      <button id="generateBtn">🎯 Generate Pitch</button>
+      <button id="speakBtn">🔊 Read Pitch</button>
+      <button id="exportPdfBtn">📄 Export Slides as PDF</button>
+    </div>
+
+    <div id="pitchOutput"></div>
+
+    <h2>📽️ Slides</h2>
+    <div id="slides-container"></div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    const generateBtn = document.getElementById('generateBtn');
+    const exportBtn = document.getElementById('exportPdfBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const industrySelect = document.getElementById('industry');
+    const audienceSelect = document.getElementById('audience');
+    const toneSelect = document.getElementById('tone');
+    const ideaInput = document.getElementById('idea');
+    const pitchOutput = document.getElementById('pitchOutput');
+    const slidesContainer = document.getElementById('slides-container');
+    let currentSlides = [];
+
+    function renderSlides(slides) {
+      slidesContainer.innerHTML = '';
+      slides.forEach(slide => {
+        const slideCard = document.createElement('div');
+        slideCard.className = 'slide-card';
+        slideCard.innerHTML = `
+          <h3>${slide.title}</h3>
+          ${slide.image_url ? `<img src="${slide.image_url}" alt="${slide.title}">` : ''}
+          <p>${slide.content}</p>
+        `;
+        slidesContainer.appendChild(slideCard);
+      });
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      const idea = ideaInput.value.trim();
+      const industry = industrySelect.value;
+      const audience = audienceSelect.value;
+      const tone = toneSelect.value;
+
+      if (!idea) {
+        alert("Please enter a startup idea.");
+        return;
+      }
+
+      pitchOutput.textContent = 'Generating pitch...';
+      slidesContainer.innerHTML = '';
+
+      try {
+        const response = await fetch('http://localhost:3000/generate_pitch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idea, tone, industry, audience })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          pitchOutput.textContent = 'Error: ' + data.error;
+          return;
+        }
+
+        pitchOutput.textContent = data.pitch;
+        currentSlides = data.slides || [];
+        renderSlides(currentSlides);
+      } catch (err) {
+        console.error(err);
+        pitchOutput.textContent = 'An error occurred while generating pitch.';
+      }
+    });
+
+    exportBtn.addEventListener('click', () => {
+      if (slidesContainer.innerHTML.trim() === '') {
+        alert("Please generate slides first.");
+        return;
+      }
+
+      html2pdf().from(slidesContainer).set({
+        margin: 0.5,
+        filename: 'startup_pitch_slides.pdf',
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      }).save();
+    });
+
+    speakBtn.addEventListener('click', () => {
+      const pitchText = pitchOutput.textContent.trim();
+      if (!pitchText) return alert("No pitch to read.");
+
+      const utterance = new SpeechSynthesisUtterance(pitchText);
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => v.name.includes("Google UK English Female") || v.name.includes("Microsoft Zira") || v.lang === "en-US");
+      utterance.voice = preferredVoice || voices[0];
+      utterance.pitch = 1;
+      utterance.rate = 1;
+      speechSynthesis.speak(utterance);
+    });
+
+    window.speechSynthesis.onvoiceschanged = () => {};
+  </script>
+</body>
+</html>
