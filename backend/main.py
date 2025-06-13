@@ -16,7 +16,7 @@ app = FastAPI()
 # Allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://your-frontend.vercel.app"],  # You can restrict this in production
+    allow_origins=["https://startup-pitch-generator.vercel.app"],  # You can restrict this in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
